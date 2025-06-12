@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="caster">
+      <xacro:macro name="caster" params="prefix x y z roll:=0 pitch:=0 yaw:=0 x_reflect:=1 y_reflect:=1">
+        <link name="${prefix}_link">
+          <visual>
+            <geometry>
+              <sphere radius="${caster_radius}"/>
+            </geometry>
+            <material name="Cyan">
+              <color rgba="0 1.0 1.0 1.0"/>
+            </material>
+          </visual>
+
+          <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+              <sphere radius="${caster_radius}"/>
+            </geometry>
+          </collision>
+
+          <!-- 
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.1</mu>
+                <mu2>0.1</mu2>
+              </ode>
+            </friction>
+          </surface>
+          -->
+
+          <xacro:sphere_inertia m="5" r="${caster_radius}"/>
+        </link>
+
+        <joint name="${prefix}_joint" type="fixed">
+          <parent link="base_link"/>
+          <child link="${prefix}_link"/>
+          <origin xyz="${x_reflect*x} ${y_reflect*y} ${z}" rpy="${roll} ${pitch} ${yaw}"/>
+        </joint>
+      </xacro:macro>
+</robot>
