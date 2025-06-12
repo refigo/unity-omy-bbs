@@ -21,7 +21,7 @@ public class RosJointStatesSubscriber : MonoBehaviour
         "joint4",     // wrist1 joint
         "joint5",     // wrist2 joint
         "joint6",     // wrist3 joint
-        // "gripper"     // gripper joint
+        "rh_r1_joint",     // gripper joint
     };
 
     void Start()
@@ -81,12 +81,22 @@ public class RosJointStatesSubscriber : MonoBehaviour
         }
     }
 
+    // List of joints that should receive the same value as rh_r1_joint
+    private readonly string[] fingersJoints = {
+        "rh_p12_rn_l1",
+        "rh_p12_rn_l2",
+        "rh_p12_rn_r1",
+        "rh_p12_rn_r2"
+    };
+
     void JointStateChange(RosJointState jointStateMessage)
     {
         // Test
         // Debug.Log(jointStateMessage);
         // return;
 
+        // Variable to store rh_r1_joint position if found
+        float rh_r1_position_deg = float.NaN;
 
         // Process the received joint state message
         for (int i = 0; i < jointStateMessage.name.Length; i++)
@@ -94,7 +104,15 @@ public class RosJointStatesSubscriber : MonoBehaviour
             string name = jointStateMessage.name[i];
             double position = jointStateMessage.position[i];
 
-            // Check if this joint exists in our dictionary
+            // Check if this is the rh_r1_joint we need to track
+            if (name == "rh_r1_joint")
+            {
+                // Convert from radians to degrees and store for later use
+                rh_r1_position_deg = (float)position * Mathf.Rad2Deg;
+                Debug.Log($"Received rh_r1_joint position: {rh_r1_position_deg} degrees");
+            }
+
+            // Apply position to the matching joint if it exists
             if (jointDict.TryGetValue(name, out ArticulationBody joint))
             {
                 // Get the current drive
@@ -114,6 +132,36 @@ public class RosJointStatesSubscriber : MonoBehaviour
             else
             {
                 Debug.LogWarning($"Joint {name} not found in the robot!");
+            }
+        }
+
+        // If we received an rh_r1_joint position, apply it to the finger joints
+        if (!float.IsNaN(rh_r1_position_deg))
+        {
+            ApplyPositionToFingerJoints(rh_r1_position_deg);
+        }
+    }
+
+    private void ApplyPositionToFingerJoints(float positionDegrees)
+    {
+        foreach (string jointName in fingersJoints)
+        {
+            if (jointDict.TryGetValue(jointName, out ArticulationBody joint))
+            {
+                // Get the current drive
+                ArticulationDrive drive = joint.xDrive;
+                
+                // Set the target position using the rh_r1_joint value
+                drive.target = positionDegrees;
+                
+                // Apply the drive back to the joint
+                joint.xDrive = drive;
+                
+                Debug.Log($"Applied rh_r1_joint position {positionDegrees} degrees to finger joint {jointName}");
+            }
+            else
+            {
+                Debug.LogWarning($"Finger joint {jointName} not found in the robot!");
             }
         }
     }
