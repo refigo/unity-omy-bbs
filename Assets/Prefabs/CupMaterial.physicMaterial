@@ -8,8 +8,8 @@ PhysicsMaterial:
   m_PrefabAsset: {fileID: 0}
   m_Name: CupMaterial
   serializedVersion: 2
-  m_DynamicFriction: 400
-  m_StaticFriction: 500
-  m_Bounciness: 0.5
+  m_DynamicFriction: 800
+  m_StaticFriction: 1000
+  m_Bounciness: 0.1
   m_FrictionCombine: 3
   m_BounceCombine: 0
